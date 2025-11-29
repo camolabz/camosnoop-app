@@ -1,0 +1,7 @@
+{
+  "name": "Camosnoop",
+  "description": "An AI-powered color palette generator that extracts dominant and aesthetic colors from your images.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

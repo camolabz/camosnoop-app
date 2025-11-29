@@ -1,0 +1,110 @@
+import React, { useState, useRef, useEffect } from 'react';
+
+interface MapSelectionOverlayProps {
+  onSelectionComplete: (bounds: { x: number; y: number; width: number; height: number }) => void;
+  onCancel: () => void;
+}
+
+export const MapSelectionOverlay: React.FC<MapSelectionOverlayProps> = ({ onSelectionComplete, onCancel }) => {
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
+  const [currentPoint, setCurrentPoint] = useState<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const getRelativeCoordinates = (e: React.MouseEvent) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100
+    };
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const coords = getRelativeCoordinates(e);
+    setStartPoint(coords);
+    setCurrentPoint(coords);
+    setIsDrawing(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDrawing) return;
+    const coords = getRelativeCoordinates(e);
+    setCurrentPoint(coords);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDrawing || !startPoint || !currentPoint) return;
+    setIsDrawing(false);
+
+    // Calculate bounds
+    const x = Math.min(startPoint.x, currentPoint.x);
+    const y = Math.min(startPoint.y, currentPoint.y);
+    const width = Math.abs(currentPoint.x - startPoint.x);
+    const height = Math.abs(currentPoint.y - startPoint.y);
+
+    // Only trigger if the selection is significant enough (e.g., > 1% width/height)
+    if (width > 1 && height > 1) {
+      onSelectionComplete({ x, y, width, height });
+    } else {
+      // If it was just a click, maybe cancel or do nothing
+      setStartPoint(null);
+      setCurrentPoint(null);
+    }
+  };
+
+  // Handle mouse leaving the container while drawing
+  const handleMouseLeave = () => {
+    if (isDrawing) {
+      setIsDrawing(false);
+      setStartPoint(null);
+      setCurrentPoint(null);
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 z-20 cursor-crosshair touch-none"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Instruction Overlay (visible when not drawing) */}
+      {!isDrawing && !startPoint && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full pointer-events-none select-none whitespace-nowrap">
+          Click and drag to select an area
+        </div>
+      )}
+
+      {/* Selection Box */}
+      {startPoint && currentPoint && (
+        <div
+          className="absolute border-2 border-[#1F2937] bg-gray-800/20 shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]"
+          style={{
+            left: `${Math.min(startPoint.x, currentPoint.x)}%`,
+            top: `${Math.min(startPoint.y, currentPoint.y)}%`,
+            width: `${Math.abs(currentPoint.x - startPoint.x)}%`,
+            height: `${Math.abs(currentPoint.y - startPoint.y)}%`,
+          }}
+        />
+      )}
+      
+      {/* Close/Cancel Button */}
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          onCancel();
+        }}
+        className="absolute top-2 right-2 p-1.5 bg-white text-slate-600 rounded-full shadow-md hover:bg-slate-50 hover:text-red-500 transition-colors z-30 cursor-pointer"
+        title="Cancel Selection"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+          <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  );
+};
