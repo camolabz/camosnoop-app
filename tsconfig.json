@@ -23,5 +23,5 @@
     /* Types */
     "types": ["node"]
   },
-  "include": ["./**/*.ts", "./**/*.tsx"]
+  "include": ["./**/*.ts", "./**/*.tsx", "env.d.ts"]
 }
