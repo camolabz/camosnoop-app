@@ -539,7 +539,7 @@ const App: React.FC = () => {
 
           {appState === AppState.SUCCESS && (
             <div className="w-full mt-8">
-              <PaletteDisplay colors={colors} onSave={handleSavePalette} />
+              <PaletteDisplay colors={colors} />
             </div>
           )}
 

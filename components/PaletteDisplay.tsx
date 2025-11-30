@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { ColorItem } from '../types';
@@ -7,7 +6,6 @@ import { encodePalette } from '../utils';
 
 interface PaletteDisplayProps {
   colors: ColorItem[];
-  onSave: (name: string) => void;
 }
 
 const MatchSkeleton = () => (
@@ -20,7 +18,7 @@ const MatchSkeleton = () => (
   </div>
 );
 
-export const PaletteDisplay: React.FC<PaletteDisplayProps> = ({ colors, onSave }) => {
+export const PaletteDisplay: React.FC<PaletteDisplayProps> = ({ colors }) => {
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareUrl, setShareUrl] = useState('');

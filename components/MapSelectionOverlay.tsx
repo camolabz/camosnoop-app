@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface MapSelectionOverlayProps {
   onSelectionComplete: (bounds: { x: number; y: number; width: number; height: number }) => void;
