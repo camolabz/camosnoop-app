@@ -55,19 +55,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleSavePalette = (name: string) => {
-    const newPalette: SavedPalette = {
-      id: Date.now().toString(),
-      name,
-      date: Date.now(),
-      colors
-    };
-    
-    const updatedPalettes = [newPalette, ...savedPalettes];
-    setSavedPalettes(updatedPalettes);
-    localStorage.setItem('camosnoop_palettes', JSON.stringify(updatedPalettes));
-  };
-
   const handleReset = () => {
     setAppState(AppState.IDLE);
     setSelectedImages([]);

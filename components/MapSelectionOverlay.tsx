@@ -11,30 +11,29 @@ export const MapSelectionOverlay: React.FC<MapSelectionOverlayProps> = ({ onSele
   const [currentPoint, setCurrentPoint] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const getRelativeCoordinates = (e: React.MouseEvent) => {
+  const getRelativeCoordinates = (clientX: number, clientY: number) => {
     if (!containerRef.current) return { x: 0, y: 0 };
     const rect = containerRef.current.getBoundingClientRect();
     return {
-      x: ((e.clientX - rect.left) / rect.width) * 100,
-      y: ((e.clientY - rect.top) / rect.height) * 100
+      x: ((clientX - rect.left) / rect.width) * 100,
+      y: ((clientY - rect.top) / rect.height) * 100
     };
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const coords = getRelativeCoordinates(e);
+  const handleStart = (clientX: number, clientY: number) => {
+    const coords = getRelativeCoordinates(clientX, clientY);
     setStartPoint(coords);
     setCurrentPoint(coords);
     setIsDrawing(true);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMove = (clientX: number, clientY: number) => {
     if (!isDrawing) return;
-    const coords = getRelativeCoordinates(e);
+    const coords = getRelativeCoordinates(clientX, clientY);
     setCurrentPoint(coords);
   };
 
-  const handleMouseUp = () => {
+  const handleEnd = () => {
     if (!isDrawing || !startPoint || !currentPoint) return;
     setIsDrawing(false);
 
@@ -48,13 +47,43 @@ export const MapSelectionOverlay: React.FC<MapSelectionOverlayProps> = ({ onSele
     if (width > 1 && height > 1) {
       onSelectionComplete({ x, y, width, height });
     } else {
-      // If it was just a click, maybe cancel or do nothing
       setStartPoint(null);
       setCurrentPoint(null);
     }
   };
 
-  // Handle mouse leaving the container while drawing
+  // Mouse Events
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleStart(e.clientX, e.clientY);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    handleMove(e.clientX, e.clientY);
+  };
+
+  const handleMouseUp = () => {
+    handleEnd();
+  };
+
+  // Touch Events for Mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent scrolling while drawing
+    const touch = e.touches[0];
+    handleStart(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleMove(touch.clientX, touch.clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleEnd();
+  };
+
   const handleMouseLeave = () => {
     if (isDrawing) {
       setIsDrawing(false);
@@ -71,10 +100,13 @@ export const MapSelectionOverlay: React.FC<MapSelectionOverlayProps> = ({ onSele
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Instruction Overlay (visible when not drawing) */}
       {!isDrawing && !startPoint && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full pointer-events-none select-none whitespace-nowrap">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full pointer-events-none select-none whitespace-nowrap z-30">
           Click and drag to select an area
         </div>
       )}
@@ -82,7 +114,7 @@ export const MapSelectionOverlay: React.FC<MapSelectionOverlayProps> = ({ onSele
       {/* Selection Box */}
       {startPoint && currentPoint && (
         <div
-          className="absolute border-2 border-[#1F2937] bg-gray-800/20 shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]"
+          className="absolute border-2 border-[#1F2937] bg-gray-800/20 shadow-[0_0_0_9999px_rgba(0,0,0,0.3)] pointer-events-none"
           style={{
             left: `${Math.min(startPoint.x, currentPoint.x)}%`,
             top: `${Math.min(startPoint.y, currentPoint.y)}%`,
@@ -98,7 +130,7 @@ export const MapSelectionOverlay: React.FC<MapSelectionOverlayProps> = ({ onSele
           e.stopPropagation();
           onCancel();
         }}
-        className="absolute top-2 right-2 p-1.5 bg-white text-slate-600 rounded-full shadow-md hover:bg-slate-50 hover:text-red-500 transition-colors z-30 cursor-pointer"
+        className="absolute top-2 right-2 p-1.5 bg-white text-slate-600 rounded-full shadow-md hover:bg-slate-50 hover:text-red-500 transition-colors z-40 cursor-pointer pointer-events-auto"
         title="Cancel Selection"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
