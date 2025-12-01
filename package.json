@@ -19,5 +19,8 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "@types/node": "^20.11.0"
+  },
+  "overrides": {
+    "node-domexception": "npm:@ungap/dom-exception@^0.2.0"
   }
 }
