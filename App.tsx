@@ -8,7 +8,7 @@ import { MapSelectionOverlay } from './components/MapSelectionOverlay';
 import { FAQPage } from './components/FAQPage';
 import { LegalPage } from './components/LegalPage';
 import { extractColorsFromImage, extractColorsFromLocation, extractColorsFromHybrid, extractColorsFromStreetLocation, getCoordinatesFromLocation } from './services/geminiService';
-import { AppState, ColorItem, SavedPalette } from './types';
+import { AppState, ColorItem } from './types';
 import { processResponseColors, decodePalette } from './utils';
 
 type InputMode = 'upload' | 'location' | 'street' | 'combined';
@@ -25,19 +25,6 @@ const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [savedPalettes, setSavedPalettes] = useState<SavedPalette[]>([]);
-
-  // Load saved palettes from local storage on mount
-  useEffect(() => {
-    const storedPalettes = localStorage.getItem('camosnoop_palettes');
-    if (storedPalettes) {
-      try {
-        setSavedPalettes(JSON.parse(storedPalettes));
-      } catch (e) {
-        console.error("Failed to parse saved palettes", e);
-      }
-    }
-  }, []);
 
   // Check URL for shared palette
   useEffect(() => {
@@ -330,21 +317,6 @@ const App: React.FC = () => {
             >
               Satellite
             </button>
-            
-            {/* Street View Toggle (Hidden by request, but logic remains) */}
-            {/* 
-            <button
-              onClick={() => switchMode('street')}
-              className={`flex-1 min-w-[80px] py-3 md:py-2 px-2 rounded-lg text-sm font-semibold transition-all duration-200 truncate ${
-                inputMode === 'street' 
-                  ? 'bg-white text-[#1F2937] shadow-sm ring-1 ring-black/5' 
-                  : 'text-slate-500 hover:text-slate-700'
-              }`}
-              disabled={appState === AppState.ANALYZING}
-            >
-              Street View
-            </button> 
-            */}
             
             <button
               onClick={() => switchMode('combined')}
